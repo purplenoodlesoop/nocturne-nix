@@ -29,6 +29,8 @@
     lib.evalFlake {
       specialArgs = { inherit nocturne-src water-ui-src; };
 
+      config.allowUnfreePredicate = pkg: builtins.elem (pkg.pname or "") [ "water-ui-wasm" ];
+
       perSystem.imports = with nixosModules; [
         tasks
         ./nix/packages.nix

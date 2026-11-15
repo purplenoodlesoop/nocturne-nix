@@ -1,6 +1,7 @@
 {
   pkgs,
   nocturne-src,
+  water-ui-src,
   ...
 }:
 let
@@ -9,9 +10,11 @@ let
     src = nocturne-src;
     inherit version;
   };
+  waterUiWasm = pkgs.callPackage ./water-ui-wasm.nix { src = water-ui-src; };
 in
 {
   flake.packages = {
     nocturne-alerts = alerts;
+    water-ui-wasm = waterUiWasm;
   };
 }
