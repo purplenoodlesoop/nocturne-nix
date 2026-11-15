@@ -33,7 +33,9 @@
 
       perSystem.imports = with nixosModules; [
         tasks
+        ./nix/checks.nix
         ./nix/packages.nix
+        ./nix/tasks.nix
       ];
 
       topLevel.nixosModules = rec {
