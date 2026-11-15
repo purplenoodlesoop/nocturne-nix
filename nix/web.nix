@@ -22,6 +22,13 @@ let
     cp -r ${water-ui-src} "$out/vendor/water-ui"
     substituteInPlace "$out/pnpm-workspace.yaml" \
       --replace-fail "enableGlobalVirtualStore: true" "enableGlobalVirtualStore: false"
+    cat >> "$out/pnpm-workspace.yaml" <<'YAML'
+
+    supportedArchitectures:
+      os: [linux, darwin]
+      cpu: [x64, arm64]
+      libc: [glibc]
+    YAML
   '';
 
   workspaces = [ "@nocturne/app..." ];
@@ -39,7 +46,7 @@ stdenv.mkDerivation (finalAttrs: {
     pnpm = pnpm_11;
     pnpmWorkspaces = workspaces;
     fetcherVersion = 5;
-    hash = "sha256-bn/JmQnLLqpmH2fVu0Yjy/YrpDMpn4+Tdwab9nPHjC0=";
+    hash = "sha256-cFG0pt2b7wHIHGQv4pezqRS2Kd8sdeCDomUlSxODh0U=";
   };
 
   nativeBuildInputs = [
