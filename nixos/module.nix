@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  utils,
   ...
 }:
 
@@ -310,14 +311,16 @@ in
         BASE_DOMAIN = cfg.baseDomain;
         WEB_URL = loopback cfg.web.port;
         DemoService__Enabled = "false";
-        "ConnectionStrings__nocturne-postgres" = npgsql "nocturne_app";
-        "ConnectionStrings__nocturne-postgres-migrator" = npgsql "nocturne_migrator";
       }
       // lib.mapAttrs (_: render) cfg.api.settings;
 
       serviceConfig = hardening // {
         User = "nocturne-api";
-        ExecStart = lib.getExe cfg.api.package;
+        ExecStart = utils.escapeSystemdExecArgs [
+          (lib.getExe cfg.api.package)
+          "--ConnectionStrings:nocturne-postgres=${npgsql "nocturne_app"}"
+          "--ConnectionStrings:nocturne-postgres-migrator=${npgsql "nocturne_migrator"}"
+        ];
         EnvironmentFile = cfg.environmentFile;
         StateDirectory = "nocturne-api";
         WorkingDirectory = "/var/lib/nocturne-api";
@@ -338,7 +341,6 @@ in
         NOCTURNE_API_URL = loopback cfg.api.port;
         NOCTURNE_API_HTTP = loopback cfg.api.port;
         PUBLIC_API_URL = loopback cfg.api.port;
-        "services__nocturne-api__http__0" = loopback cfg.api.port;
         BASE_DOMAIN = cfg.baseDomain;
         PROTOCOL_HEADER = "x-forwarded-proto";
         HOST_HEADER = "x-forwarded-host";
