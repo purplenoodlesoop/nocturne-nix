@@ -15,11 +15,17 @@ let
     src = nocturne-src;
     inherit version alerts;
   };
+  web = pkgs.callPackage ./web.nix {
+    src = nocturne-src;
+    inherit version water-ui-src waterUiWasm;
+    apiClient = api.client;
+  };
 in
 {
   flake.packages = {
     nocturne-alerts = alerts;
     nocturne-api = api;
+    nocturne-web = web;
     water-ui-wasm = waterUiWasm;
   };
 }

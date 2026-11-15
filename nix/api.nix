@@ -1,6 +1,7 @@
 {
   lib,
   buildDotnetModule,
+  jq,
   dotnetCorePackages,
   src,
   version,
@@ -32,6 +33,29 @@ buildDotnetModule {
   ];
 
   dotnetInstallFlags = [ "-p:PublishReadyToRun=false" ];
+
+  nativeBuildInputs = [ jq ];
+
+  outputs = [
+    "out"
+    "client"
+  ];
+
+  postBuild = ''
+    pushd src/API/Nocturne.API
+    nswag=$(dotnet msbuild -getProperty:NSwagExe_Net100 -p:Configuration=Release)
+    rid=$(basename bin/Release/net11.0/*/)
+    jq --arg rid "$rid" '.documentGenerator.aspNetCoreToOpenApi.runtime = $rid' nswag.json > nswag.rid.json
+    eval env DOTNET_ROLL_FORWARD=Major \
+      "'ConnectionStrings__nocturne-postgres=Host=localhost'" \
+      "'ConnectionStrings__nocturne-postgres-migrator=Host=localhost'" \
+      "$nswag" run nswag.rid.json /variables:Configuration=Release
+    popd
+  '';
+
+  postInstall = ''
+    cp -r src/Web/packages/app/src/lib/api/generated "$client"
+  '';
 
   executables = [ "Nocturne.API" ];
 
