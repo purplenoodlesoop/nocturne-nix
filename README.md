@@ -1,0 +1,74 @@
+# nocturne-nix
+
+Nix packaging and a NixOS module for [Nocturne](https://github.com/nightscout/nocturne), the
+Nightscout-compatible diabetes data platform. Everything is built from source; no container
+images are involved.
+
+## What gets built
+
+| Output | From | With |
+|---|---|---|
+| `nocturne-alerts` | `crates/` | Rust, the alert engine as a C ABI library |
+| `water-ui-wasm` | the `water-ui` submodule | Rust to wasm32, `wasm-bindgen` 0.2.128, `wasm-opt` |
+| `nocturne-api` | `src/API` | .NET 11, NuGet locked in `nix/api-deps.json` |
+| `nocturne-api.client` | the built API | NSwag: the OpenAPI document and the TypeScript client the web build reads |
+| `nocturne-web` | `src/Web` | pnpm 11, Node 24, SvelteKit with adapter-node |
+
+The API loads `nocturne-alerts` from its own output, so the build never downloads the prebuilt
+library upstream's project would otherwise fetch.
+
+The web build asks Node for an 8 GB heap. Build on a machine with at least 12 GB of memory and
+copy the closure to a smaller server.
+
+`water-ui` is published without a licence ("all rights reserved") by Nocturne's maintainer and is
+bundled into Nocturne's own images. It is marked unfree here and allowed by name for this flake's
+package set only.
+
+nixpkgs carries the .NET 11 release candidate 3 SDK at the moment; the build removes upstream's
+`global.json`, which asks for the final release.
+
+## The module
+
+```nix
+{
+  imports = [ inputs.nocturne-nix.nixosModules.default ];
+
+  services.nocturne = {
+    enable = true;
+    baseDomain = "nocturne.example.org";
+    environmentFile = "/run/secrets/nocturne.env";
+    api.package = inputs.nocturne-nix.packages.${pkgs.system}.nocturne-api;
+    web.package = inputs.nocturne-nix.packages.${pkgs.system}.nocturne-web;
+  };
+}
+```
+
+`environmentFile` must set `INSTANCE_KEY` (at least 32 characters). It signs tokens and encrypts
+the secrets Nocturne stores, so keep a copy off the server.
+
+What the module runs:
+
+- **PostgreSQL 17** with the database and Nocturne's three roles (`nocturne_migrator` owns the
+  schema and runs migrations, `nocturne_app` is the runtime role, `nocturne_web` holds bot state).
+  The services connect over the Unix socket with peer authentication, so there is no database
+  password at all.
+- **`nocturne-api`** and **`nocturne-web`**, each on a loopback port, as systemd services with
+  `DynamicUser` and the usual hardening.
+- **`nocturne-gateway`**, a Caddy instance on loopback that reproduces upstream's routing: a
+  handful of authentication and API documentation paths go to the API, everything else to the
+  web server, which proxies the rest of `/api` itself. Point a TLS-terminating reverse proxy at
+  `services.nocturne.port` and add its address to `trustedProxies` if it is not on loopback.
+
+A single-tenant install answers on `baseDomain` itself, so no wildcard certificate is needed.
+
+## Tasks
+
+```
+nix run .#update -- v0.3.3   # move the pin, water-ui, the NuGet lock and the pnpm hash together
+nix run .#fmt
+nix flake check              # builds everything; on Linux also boots the module in a VM
+```
+
+## Licence
+
+The packaging is MIT. Nocturne is AGPL-3.0 and is fetched at build time, not vendored.
