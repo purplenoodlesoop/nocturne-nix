@@ -1,0 +1,39 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Enable KVM for the VM test
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086
+        with:
+          extra_nix_config: |
+            system-features = nixos-test benchmark big-parallel kvm
+
+      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866
+        if: env.CACHIX_AUTH_TOKEN != ''
+        with:
+          name: purplenoodlesoop
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - run: nix flake check --print-build-logs
