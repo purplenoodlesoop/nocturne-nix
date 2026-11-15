@@ -8,6 +8,10 @@
   alerts,
 }:
 
+let
+  dotnet = dotnetCorePackages.buildDotnetSdk ./dotnet-11.nix;
+in
+
 buildDotnetModule {
   pname = "nocturne-api";
   inherit version src;
@@ -15,11 +19,10 @@ buildDotnetModule {
   projectFile = "src/API/Nocturne.API/Nocturne.API.csproj";
   nugetDeps = ./api-deps.json;
 
-  dotnet-sdk = dotnetCorePackages.sdk_11_0;
-  dotnet-runtime = dotnetCorePackages.aspnetcore_11_0;
+  dotnet-sdk = dotnet.sdk_11_0;
+  dotnet-runtime = dotnet.aspnetcore_11_0;
 
   postPatch = ''
-    rm global.json
     substituteInPlace src/API/Nocturne.API/Nocturne.API.csproj \
       --replace-fail \
         'RemoveProperties="TargetFramework;RuntimeIdentifier;SelfContained;PublishDir;PublishProfile;_IsPublishing">' \

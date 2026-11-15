@@ -24,8 +24,10 @@ copy the closure to a smaller server.
 bundled into Nocturne's own images. It is marked unfree here and allowed by name for this flake's
 package set only.
 
-nixpkgs carries the .NET 11 release candidate 3 SDK at the moment; the build removes upstream's
-`global.json`, which asks for the final release.
+nixpkgs carries only a .NET 11 release candidate at the moment, so `nix/dotnet-11.nix` pins the
+final 11.0.0 runtime and 11.0.100 SDK. It is generated from Microsoft's release metadata by
+nixpkgs' own `dotnetCorePackages.generate-dotnet-sdk` and loaded with `buildDotnetSdk`; drop it
+once nixpkgs has the release.
 
 ## The module
 

@@ -79,6 +79,7 @@ in
         ${./alerts.nix} \
         ${./api.nix} \
         ${./checks.nix} \
+        ${./dotnet-11.nix} \
         ${./packages.nix} \
         ${./tasks.nix} \
         ${./water-ui-wasm.nix} \
