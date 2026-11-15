@@ -11,10 +11,15 @@ let
     inherit version;
   };
   waterUiWasm = pkgs.callPackage ./water-ui-wasm.nix { src = water-ui-src; };
+  api = pkgs.callPackage ./api.nix {
+    src = nocturne-src;
+    inherit version alerts;
+  };
 in
 {
   flake.packages = {
     nocturne-alerts = alerts;
+    nocturne-api = api;
     water-ui-wasm = waterUiWasm;
   };
 }
