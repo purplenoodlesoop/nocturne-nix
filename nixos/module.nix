@@ -45,6 +45,25 @@ let
     "/pebble"
   ];
 
+  traefikMatcher =
+    route:
+    if lib.hasSuffix "/*" route then
+      "PathPrefix(`${lib.removeSuffix "*" route}`)"
+    else
+      "Path(`${route}`)";
+
+  hostRule = "Host(`${cfg.baseDomain}`)";
+
+  traefikRouter =
+    service: rule:
+    {
+      inherit rule service;
+      inherit (cfg.traefik) entryPoints middlewares;
+    }
+    // lib.optionalAttrs (cfg.traefik.certResolver != null) {
+      tls.certResolver = cfg.traefik.certResolver;
+    };
+
   caddyfile = pkgs.writeText "nocturne-gateway.Caddyfile" ''
     {
       admin off
@@ -110,19 +129,54 @@ in
       example = "nocturne.example.org";
     };
 
+    proxy = mkOption {
+      type = types.enum [
+        "caddy"
+        "traefik"
+      ];
+      default = "caddy";
+      description = ''
+        What splits requests between the API and the web server. `caddy` runs a
+        small loopback gateway on `port`, for any reverse proxy to point at.
+        `traefik` adds routers and services for `baseDomain` to the host's
+        `services.traefik` instead, so no gateway process runs.
+      '';
+    };
+
+    traefik = {
+      entryPoints = mkOption {
+        type = types.listOf types.str;
+        default = [ "websecure" ];
+        description = "Traefik entry points the Nocturne routers listen on.";
+      };
+
+      certResolver = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Certificate resolver for the routers, or null for no TLS section.";
+        example = "letsencrypt";
+      };
+
+      middlewares = mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = "Traefik middlewares applied to both routers.";
+      };
+    };
+
     address = mkOption {
       type = types.str;
       default = "127.0.0.1";
       description = ''
-        Address the gateway binds. Loopback by default; put a TLS-terminating
-        reverse proxy in front of it.
+        Address the Caddy gateway binds. Loopback by default; put a
+        TLS-terminating reverse proxy in front of it.
       '';
     };
 
     port = mkOption {
       type = types.port;
       default = 5080;
-      description = "Port of the gateway, the one address a reverse proxy needs.";
+      description = "Port of the Caddy gateway, the one address a reverse proxy needs.";
     };
 
     trustedProxies = mkOption {
@@ -357,7 +411,20 @@ in
       };
     };
 
-    systemd.services.nocturne-gateway = {
+    services.traefik.dynamicConfigOptions.http = mkIf (cfg.proxy == "traefik") {
+      routers = {
+        nocturne-api = traefikRouter "nocturne-api" "${hostRule} && (${
+          lib.concatMapStringsSep " || " traefikMatcher apiRoutes
+        })";
+        nocturne-web = traefikRouter "nocturne-web" hostRule;
+      };
+      services = {
+        nocturne-api.loadBalancer.servers = [ { url = loopback cfg.api.port; } ];
+        nocturne-web.loadBalancer.servers = [ { url = loopback cfg.web.port; } ];
+      };
+    };
+
+    systemd.services.nocturne-gateway = mkIf (cfg.proxy == "caddy") {
       description = "Nocturne gateway";
       wantedBy = [ "multi-user.target" ];
       after = [

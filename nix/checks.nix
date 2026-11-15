@@ -7,60 +7,80 @@
 let
   inherit (config.flake) packages;
 
+  common = {
+    imports = [ ../nixos/module.nix ];
+
+    virtualisation = {
+      memorySize = 4096;
+      cores = 2;
+    };
+
+    environment.etc."nocturne.env".text = ''
+      INSTANCE_KEY=test-instance-key-0123456789abcdef0123456789
+    '';
+
+    services.nocturne = {
+      enable = true;
+      baseDomain = "nocturne.example.org";
+      environmentFile = "/etc/nocturne.env";
+      api.package = packages.nocturne-api;
+      web.package = packages.nocturne-web;
+    };
+  };
+
   vm = pkgs.testers.runNixOSTest {
     name = "nocturne";
 
-    nodes.machine = {
-      imports = [ ../nixos/module.nix ];
+    nodes = {
+      caddy = common;
 
-      virtualisation = {
-        memorySize = 4096;
-        cores = 2;
-      };
-
-      environment.etc."nocturne.env".text = ''
-        INSTANCE_KEY=test-instance-key-0123456789abcdef0123456789
-      '';
-
-      services.nocturne = {
-        enable = true;
-        baseDomain = "nocturne.example.org";
-        environmentFile = "/etc/nocturne.env";
-        api.package = packages.nocturne-api;
-        web.package = packages.nocturne-web;
+      traefik = {
+        imports = [ common ];
+        services.nocturne = {
+          proxy = "traefik";
+          traefik.entryPoints = [ "web" ];
+        };
+        services.traefik = {
+          enable = true;
+          staticConfigOptions.entryPoints.web.address = ":80";
+        };
       };
     };
 
     testScript = ''
-      machine.wait_for_unit("nocturne-database.service")
-      machine.wait_for_unit("nocturne-api.service")
-      machine.wait_for_unit("nocturne-web.service")
-      machine.wait_for_unit("nocturne-gateway.service")
-      machine.wait_for_open_port(5081)
-      machine.wait_for_open_port(5082)
-      machine.wait_for_open_port(5080)
+      def check(machine, front):
+          machine.wait_for_unit("nocturne-database.service")
+          machine.wait_for_unit("nocturne-api.service")
+          machine.wait_for_unit("nocturne-web.service")
+          machine.wait_for_open_port(5081)
+          machine.wait_for_open_port(5082)
 
-      machine.wait_until_succeeds(
-        "sudo -u postgres psql -d nocturne -tAc "
-        "\"select count(*) from information_schema.tables where table_schema = 'public'\" "
-        "| grep -qv '^0$'",
-        timeout=300,
-      )
+          machine.wait_until_succeeds(
+              "sudo -u postgres psql -d nocturne -tAc "
+              "\"select count(*) from information_schema.tables where table_schema = 'public'\" "
+              "| grep -qv '^0$'",
+              timeout=300,
+          )
 
-      status = machine.wait_until_succeeds(
-        "curl -s -o /dev/null -w '%{http_code}' -H 'Host: nocturne.example.org' "
-        "http://127.0.0.1:5080/api/v1/status.json | grep -E '^(200|401|503)$'",
-        timeout=120,
-      )
-      print("legacy status through the gateway:", status)
+          curl = f"curl -s -H 'Host: nocturne.example.org' {front}"
 
-      machine.succeed(
-        "curl -sf -o /dev/null -H 'Host: nocturne.example.org' http://127.0.0.1:5080/openapi/nocturne.json"
-        " || curl -s -o /dev/null -w '%{http_code}' -H 'Host: nocturne.example.org'"
-        " http://127.0.0.1:5080/ | grep -E '^(200|30[0-9])$'"
-      )
+          machine.wait_until_succeeds(f"{curl}/api/v1/status.json | grep -q setup_required", timeout=120)
 
-      machine.fail("ss -tlnH | grep -E ':(5080|5081|5082) ' | grep -v '127.0.0.1'")
+          api_only = machine.succeed(f"{curl}/openapi/nocturne.json")
+          assert "openapi" in api_only or "setup_required" in api_only, api_only[:300]
+          assert "<html" not in api_only.lower(), "an API-only path reached the web server"
+
+          machine.fail("ss -tlnH | grep -E ':(5080|5081|5082) ' | grep -v '127.0.0.1'")
+
+      start_all()
+
+      caddy.wait_for_unit("nocturne-gateway.service")
+      caddy.wait_for_open_port(5080)
+      check(caddy, "http://127.0.0.1:5080")
+
+      traefik.wait_for_unit("traefik.service")
+      traefik.fail("systemctl cat nocturne-gateway.service")
+      check(traefik, "http://127.0.0.1")
     '';
   };
 in

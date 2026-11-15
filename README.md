@@ -56,10 +56,23 @@ What the module runs:
   password at all.
 - **`nocturne-api`** and **`nocturne-web`**, each on a loopback port, as systemd services with
   `DynamicUser` and the usual hardening.
-- **`nocturne-gateway`**, a Caddy instance on loopback that reproduces upstream's routing: a
-  handful of authentication and API documentation paths go to the API, everything else to the
-  web server, which proxies the rest of `/api` itself. Point a TLS-terminating reverse proxy at
-  `services.nocturne.port` and add its address to `trustedProxies` if it is not on loopback.
+- The request split upstream's gateway does: a handful of authentication and API documentation
+  paths go to the API, everything else to the web server, which proxies the rest of `/api`
+  itself. With `proxy = "caddy"` (the default) a loopback Caddy, `nocturne-gateway`, does it on
+  `services.nocturne.port`; point any TLS-terminating reverse proxy there and add its address
+  to `trustedProxies` if it is not on loopback. With `proxy = "traefik"` the module instead adds
+  two routers and two services for `baseDomain` to the host's `services.traefik`, from the same
+  route list, and no gateway runs:
+
+  ```nix
+  services.nocturne = {
+    proxy = "traefik";
+    traefik = {
+      entryPoints = [ "websecure" ];
+      certResolver = "letsencrypt";
+    };
+  };
+  ```
 
 A single-tenant install answers on `baseDomain` itself, so no wildcard certificate is needed.
 
