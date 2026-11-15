@@ -22,6 +22,8 @@ let
     cp -r ${water-ui-src} "$out/vendor/water-ui"
     substituteInPlace "$out/pnpm-workspace.yaml" \
       --replace-fail "enableGlobalVirtualStore: true" "enableGlobalVirtualStore: false"
+    substituteInPlace "$out/packages/app/server.js" \
+      --replace-fail "server.listen(PORT, () => {" "server.listen(PORT, process.env.HOST, () => {"
     cat >> "$out/pnpm-workspace.yaml" <<'YAML'
 
     supportedArchitectures:

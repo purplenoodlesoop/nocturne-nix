@@ -304,6 +304,7 @@ in
       environment = {
         ASPNETCORE_ENVIRONMENT = "Production";
         ASPNETCORE_URLS = loopback cfg.api.port;
+        ASPNETCORE_CONTENTROOT = "${cfg.api.package}/lib/nocturne-api";
         ASPNETCORE_FORWARDEDHEADERS_ENABLED = "true";
         DOTNET_gcServer = "0";
         DOTNET_GCConserveMemory = "5";
