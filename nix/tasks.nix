@@ -17,7 +17,7 @@ in
         fi
 
         echo "==> pinning nocturne-src to $tag"
-        ${pkgs.gnused}/bin/sed -i "s|github:nightscout/nocturne/v[^\"]*|github:nightscout/nocturne/$tag|" flake.nix
+        ${pkgs.gnused}/bin/sed -i "s|github:[^/]*/nocturne/[^\"]*|github:nightscout/nocturne/$tag|" flake.nix
         ${pkgs.nix}/bin/nix flake update nocturne-src
 
         src=$(${pkgs.nix}/bin/nix eval --raw --impure --expr \

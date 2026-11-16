@@ -4,6 +4,15 @@ Nix packaging and a NixOS module for [Nocturne](https://github.com/nightscout/no
 Nightscout-compatible diabetes data platform. Everything is built from source; no container
 images are involved.
 
+## Source
+
+Nocturne v0.3.2 plus one fix, from
+[purplenoodlesoop/nocturne `fix/settings-realtime-v0.3.2`](https://github.com/purplenoodlesoop/nocturne/tree/fix/settings-realtime-v0.3.2):
+v3 settings writes are announced on the `settings` storage socket, which AAPS 4.0 client control
+needs ([nightscout/nocturne#3454](https://github.com/nightscout/nocturne/pull/3454)). The
+reported version stays 0.3.2. `nix run .#update -- <tag>` returns to an upstream tag once a
+release carries the fix.
+
 ## What gets built
 
 | Output | From | With |
