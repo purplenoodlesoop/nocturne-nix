@@ -97,7 +97,11 @@ What the module runs:
   };
   ```
 
-A single-tenant install answers on `baseDomain` itself, so no wildcard certificate is needed.
+A single-tenant install answers on `baseDomain` itself, but Nocturne still hands out its
+tenant's subdomain, `<slug>.<baseDomain>`: in uploader setup links, and as the place it relays
+OIDC account-linking and connector callbacks to. `traefik.tenantSubdomains = true` routes those
+subdomains too and asks `certResolver` for a certificate covering `*.<baseDomain>`, which needs a
+DNS-01 challenge and a wildcard DNS record pointing at the host.
 
 ## Tasks
 

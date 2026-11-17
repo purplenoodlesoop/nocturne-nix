@@ -38,7 +38,10 @@ let
         imports = [ common ];
         services.nocturne = {
           proxy = "traefik";
-          traefik.entryPoints = [ "web" ];
+          traefik = {
+            entryPoints = [ "web" ];
+            tenantSubdomains = true;
+          };
         };
         services.traefik = {
           enable = true;
@@ -81,6 +84,17 @@ let
       traefik.wait_for_unit("traefik.service")
       traefik.fail("systemctl cat nocturne-gateway.service")
       check(traefik, "http://127.0.0.1")
+
+      tenant = traefik.succeed("curl -s -H 'Host: acme.nocturne.example.org' http://127.0.0.1/api/v1/status.json")
+      assert "404 page not found" not in tenant, "a tenant subdomain was not routed to Nocturne"
+      traefik.succeed(
+          "curl -s -H 'Host: deep.acme.nocturne.example.org' http://127.0.0.1/api/v1/status.json "
+          "| grep -q '404 page not found'"
+      )
+      traefik.succeed(
+          "curl -s -H 'Host: nocturne.example.org.evil.test' http://127.0.0.1/api/v1/status.json "
+          "| grep -q '404 page not found'"
+      )
     '';
   };
 in

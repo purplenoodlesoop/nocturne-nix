@@ -52,7 +52,11 @@ let
     else
       "Path(`${route}`)";
 
-  hostRule = "Host(`${cfg.baseDomain}`)";
+  hostRule =
+    if cfg.traefik.tenantSubdomains then
+      "(Host(`${cfg.baseDomain}`) || HostRegexp(`^[a-z0-9-]+\\.${lib.escapeRegex cfg.baseDomain}$`))"
+    else
+      "Host(`${cfg.baseDomain}`)";
 
   traefikRouter =
     service: rule:
@@ -61,7 +65,17 @@ let
       inherit (cfg.traefik) entryPoints middlewares;
     }
     // lib.optionalAttrs (cfg.traefik.certResolver != null) {
-      tls.certResolver = cfg.traefik.certResolver;
+      tls = {
+        inherit (cfg.traefik) certResolver;
+      }
+      // lib.optionalAttrs cfg.traefik.tenantSubdomains {
+        domains = [
+          {
+            main = cfg.baseDomain;
+            sans = [ "*.${cfg.baseDomain}" ];
+          }
+        ];
+      };
     };
 
   caddyfile = pkgs.writeText "nocturne-gateway.Caddyfile" ''
@@ -161,6 +175,18 @@ in
         type = types.listOf types.str;
         default = [ ];
         description = "Traefik middlewares applied to both routers.";
+      };
+
+      tenantSubdomains = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Also route the tenant subdomains of `baseDomain` (`<slug>.<baseDomain>`). Nocturne
+          puts the tenant's subdomain in the uploader setup links it hands out and relays OIDC
+          and connector callbacks there, so these break unless the subdomain is served. Needs a
+          wildcard DNS record, and with `certResolver` one that can issue a wildcard certificate
+          (a DNS-01 challenge).
+        '';
       };
     };
 
