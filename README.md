@@ -6,7 +6,7 @@ images are involved.
 
 ## Source
 
-Nocturne v0.3.2 plus three fixes, each exactly as submitted upstream, from
+Nocturne v0.3.2 plus four fixes, each exactly as submitted upstream, from
 [purplenoodlesoop/nocturne `deploy/v0.3.2`](https://github.com/purplenoodlesoop/nocturne/tree/deploy/v0.3.2):
 
 - v3 settings writes are announced on the `settings` storage socket, which AAPS 4.0 client
@@ -15,6 +15,9 @@ Nocturne v0.3.2 plus three fixes, each exactly as submitted upstream, from
   ([nightscout/nocturne#3467](https://github.com/nightscout/nocturne/pull/3467)).
 - The loop and IOB pill times follow the 12/24-hour preference
   ([nightscout/nocturne#3468](https://github.com/nightscout/nocturne/pull/3468)).
+- An AAPS phone's loop status is listed as an AndroidAPS data source rather than OpenAPS
+  (the first commit of [nightscout/nocturne#3469](https://github.com/nightscout/nocturne/pull/3469);
+  its second commit covers a connections list v0.3.2 does not have).
 
 The reported version stays 0.3.2. `nix run .#update -- <tag>` returns to an upstream tag once a
 release carries the fixes.
