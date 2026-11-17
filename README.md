@@ -6,7 +6,7 @@ images are involved.
 
 ## Source
 
-Nocturne v0.3.2 plus six changes, each exactly as submitted upstream, from
+Nocturne v0.3.2 plus seven changes, each exactly as submitted upstream, from
 [purplenoodlesoop/nocturne `deploy/v0.3.2`](https://github.com/purplenoodlesoop/nocturne/tree/deploy/v0.3.2):
 
 - v3 settings writes are announced on the `settings` storage socket, which AAPS 4.0 client
@@ -23,6 +23,9 @@ Nocturne v0.3.2 plus six changes, each exactly as submitted upstream, from
   [nightscout/AndroidAPS#5594](https://github.com/nightscout/AndroidAPS/pull/5594) on the phone).
 - The dashboard's prediction curves refresh when a newer reading arrives instead of keeping
   the forecast from page load ([nightscout/nocturne#3497](https://github.com/nightscout/nocturne/pull/3497)).
+- A v3 settings document keeps its own non-string `key` field, which AAPS 4.0 uses for the
+  answer to a client-control key exchange
+  ([nightscout/nocturne#3498](https://github.com/nightscout/nocturne/pull/3498)).
 
 The reported version stays 0.3.2. `nix run .#update -- <tag>` returns to an upstream tag once a
 release carries the fixes.
