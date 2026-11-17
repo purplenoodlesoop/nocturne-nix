@@ -6,12 +6,18 @@ images are involved.
 
 ## Source
 
-Nocturne v0.3.2 plus one fix, from
-[purplenoodlesoop/nocturne `fix/settings-realtime-v0.3.2`](https://github.com/purplenoodlesoop/nocturne/tree/fix/settings-realtime-v0.3.2):
-v3 settings writes are announced on the `settings` storage socket, which AAPS 4.0 client control
-needs ([nightscout/nocturne#3454](https://github.com/nightscout/nocturne/pull/3454)). The
-reported version stays 0.3.2. `nix run .#update -- <tag>` returns to an upstream tag once a
-release carries the fix.
+Nocturne v0.3.2 plus three fixes, each exactly as submitted upstream, from
+[purplenoodlesoop/nocturne `deploy/v0.3.2`](https://github.com/purplenoodlesoop/nocturne/tree/deploy/v0.3.2):
+
+- v3 settings writes are announced on the `settings` storage socket, which AAPS 4.0 client
+  control needs ([nightscout/nocturne#3454](https://github.com/nightscout/nocturne/pull/3454)).
+- AAPS 4.0 uploads are recognised as AAPS rather than OpenAPS
+  ([nightscout/nocturne#3467](https://github.com/nightscout/nocturne/pull/3467)).
+- The loop and IOB pill times follow the 12/24-hour preference
+  ([nightscout/nocturne#3468](https://github.com/nightscout/nocturne/pull/3468)).
+
+The reported version stays 0.3.2. `nix run .#update -- <tag>` returns to an upstream tag once a
+release carries the fixes.
 
 ## What gets built
 
