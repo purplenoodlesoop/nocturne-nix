@@ -8,7 +8,7 @@
     };
 
     nocturne-src = {
-      url = "github:purplenoodlesoop/nocturne/1653838d0f58b051c65ef9a0947ef8a4abd8d20e";
+      url = "github:purplenoodlesoop/nocturne/0dc643ff53b9549639fc624bef22c651776ce3d9";
       flake = false;
     };
 
