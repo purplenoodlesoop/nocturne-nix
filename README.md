@@ -6,7 +6,7 @@ images are involved.
 
 ## Source
 
-Nocturne v0.3.2 plus seven changes, each exactly as submitted upstream, from
+Nocturne v0.3.2 plus eight changes, each as submitted upstream, from
 [purplenoodlesoop/nocturne `deploy/v0.3.2`](https://github.com/purplenoodlesoop/nocturne/tree/deploy/v0.3.2):
 
 - v3 settings writes are announced on the `settings` storage socket, which AAPS 4.0 client
@@ -26,6 +26,9 @@ Nocturne v0.3.2 plus seven changes, each exactly as submitted upstream, from
 - A v3 settings document keeps its own non-string `key` field, which AAPS 4.0 uses for the
   answer to a client-control key exchange
   ([nightscout/nocturne#3498](https://github.com/nightscout/nocturne/pull/3498)).
+- The sidebar sparkline and the clock face charts follow the chosen line colour mode, as the
+  dashboard chart does ([nightscout/nocturne#3940](https://github.com/nightscout/nocturne/pull/3940);
+  only its import line differs, since v0.3.2's clock renderer imports no other appearance setting).
 
 The reported version stays 0.3.2. `nix run .#update -- <tag>` returns to an upstream tag once a
 release carries the fixes.
