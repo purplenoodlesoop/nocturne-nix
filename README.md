@@ -29,7 +29,7 @@ Nocturne v0.3.2 plus nine changes, each as submitted upstream, from
 - The sidebar sparkline and the clock face charts follow the chosen line colour mode, as the
   dashboard chart does ([nightscout/nocturne#3940](https://github.com/nightscout/nocturne/pull/3940);
   only its import line differs, since v0.3.2's clock renderer imports no other appearance setting).
-- A collapsed sidebar stays collapsed across page loads
+- A collapsed sidebar stays collapsed across page loads, for a year after the last toggle
   ([nightscout/nocturne#4065](https://github.com/nightscout/nocturne/pull/4065)).
 
 The reported version stays 0.3.2. `nix run .#update -- <tag>` returns to an upstream tag once a
