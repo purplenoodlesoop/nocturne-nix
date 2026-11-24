@@ -31,6 +31,8 @@ Nocturne v0.3.2 plus nine changes, each as submitted upstream, from
   only its import line differs, since v0.3.2's clock renderer imports no other appearance setting).
 - A collapsed sidebar stays collapsed across page loads, for a year after the last toggle
   ([nightscout/nocturne#4065](https://github.com/nightscout/nocturne/pull/4065)).
+- The dashboard and day charts draw temporary targets as the Time spans page does, with their value
+  and reason in the tooltip (fork only, no upstream pull request).
 
 The reported version stays 0.3.2. `nix run .#update -- <tag>` returns to an upstream tag once a
 release carries the fixes.

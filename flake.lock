@@ -58,17 +58,17 @@
     "nocturne-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1795467765,
-        "narHash": "sha256-NJZ1X3LHk/vPwMSEzCPfbyQ9zNaa0KZkLbKTxpPny4M=",
+        "lastModified": 1795555886,
+        "narHash": "sha256-s3CDv+dijo36ElWfFmP0zCq6SDBiS3nkqv2BymI3Wg8=",
         "owner": "purplenoodlesoop",
         "repo": "nocturne",
-        "rev": "9d7051c9d54f0d36467b68d7f5c6c54cb09c5bc7",
+        "rev": "dd6dbe786eb37a489435b9232205c3950bd92ac5",
         "type": "github"
       },
       "original": {
         "owner": "purplenoodlesoop",
         "repo": "nocturne",
-        "rev": "9d7051c9d54f0d36467b68d7f5c6c54cb09c5bc7",
+        "rev": "dd6dbe786eb37a489435b9232205c3950bd92ac5",
         "type": "github"
       }
     },
